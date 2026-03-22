@@ -17,8 +17,7 @@ A stateless web application deployed behind a Load Balancer with:
 ---
 
 # 🏗️ Architecture Diagram (Simplified)
-
-
+azure-vmss-project/screenshots/The Resilient VMSS Architecture.png
 
 
 ---
