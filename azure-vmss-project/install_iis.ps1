@@ -75,21 +75,21 @@ $htmlContent = @"
             <p class="subtitle">VMSS Instance Dashboard — Stateless Node</p>
 
             <div class="grid">
-                <div class="item"><div class="label">🖥 Instance Name</div><div class="val">$hostname</div></div>
-                <div class="item"><div class="label">🌐 Private IP Address</div><div class="val">$privateIP</div></div>
-                <div class="item"><div class="label">🕐 Timestamp (UTC)</div><div class="val">$timestamp</div></div>
-                <div class="item"><div class="label">🔑 Request ID</div><div class="val">$requestID</div></div>
+                <div class="item"><div class="label"> Instance Name</div><div class="val">$hostname</div></div>
+                <div class="item"><div class="label"> Private IP Address</div><div class="val">$privateIP</div></div>
+                <div class="item"><div class="label"> Timestamp (UTC)</div><div class="val">$timestamp</div></div>
+                <div class="item"><div class="label"> Request ID</div><div class="val">$requestID</div></div>
             </div>
 
-            <div class="metrics-header">📊 System Metrics <span style="color:var(--green); font-size:0.7rem; margin-left:10px;">● LIVE</span></div>
+            <div class="metrics-header"> System Metrics <span style="color:var(--green); font-size:0.7rem; margin-left:10px;">● LIVE</span></div>
             <div class="metrics-grid">
-                <div class="m-card"><span class="label">⚙️ CPU</span><span class="m-val">12%</span></div>
-                <div class="m-card"><span class="label">🧠 Memory</span><span class="m-val">34%</span></div>
-                <div class="m-card"><span class="label">💾 Disk I/O</span><span class="m-val">2%</span></div>
+                <div class="m-card"><span class="label"> CPU</span><span class="m-val">12%</span></div>
+                <div class="m-card"><span class="label"> Memory</span><span class="m-val">34%</span></div>
+                <div class="m-card"><span class="label"> Disk I/O</span><span class="m-val">2%</span></div>
             </div>
 
             <div class="demo-box">
-                <span class="demo-title">⚡ Load Balancer Demo</span>
+                <span class="demo-title"> Load Balancer Demo</span>
                 Each refresh may route to a different VMSS instance. 
                 Observe the <strong>Instance Name</strong> and <strong>Private IP</strong> change to confirm 
                 stateless distribution across the scale set.
