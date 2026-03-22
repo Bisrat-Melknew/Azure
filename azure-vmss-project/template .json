@@ -7,7 +7,7 @@
             "type": "String"
         },
         "networkSecurityGroups_Vmss_Prod_node_nsg_externalid": {
-            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/resourceGroups/1-99b44359-playground-sandbox/providers/Microsoft.Network/networkSecurityGroups/Vmss-Prod-node-nsg",
+            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/providers/Microsoft.Network/networkSecurityGroups/Vmss-Prod-node-nsg",
             "type": "String"
         },
         "virtualNetworks_Vmss_vnet_externalid": {
