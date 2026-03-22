@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachineScaleSets_Vmss_Prod_node_name": {
+            "value": null
+        },
+        "networkSecurityGroups_Vmss_Prod_node_nsg_externalid": {
+            "value": null
+        },
+        "virtualNetworks_Vmss_vnet_externalid": {
+            "value": null
+        },
+        "loadBalancers_Vmss_LB_externalid": {
+            "value": null
+        },
+        "disks_Vmss_Prod_node_Vmss_Prod_node_2_OsDisk_1_00be77c992af4440bbe788b96652b689_externalid": {
+            "value": null
+        }
+    }
+}

@@ -1,0 +1,379 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachineScaleSets_Vmss_Prod_node_name": {
+            "defaultValue": "Vmss-Prod-node",
+            "type": "String"
+        },
+        "networkSecurityGroups_Vmss_Prod_node_nsg_externalid": {
+            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/resourceGroups/1-99b44359-playground-sandbox/providers/Microsoft.Network/networkSecurityGroups/Vmss-Prod-node-nsg",
+            "type": "String"
+        },
+        "virtualNetworks_Vmss_vnet_externalid": {
+            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/resourceGroups/1-99b44359-playground-sandbox/providers/Microsoft.Network/virtualNetworks/Vmss-vnet",
+            "type": "String"
+        },
+        "loadBalancers_Vmss_LB_externalid": {
+            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/resourceGroups/1-99b44359-playground-sandbox/providers/Microsoft.Network/loadBalancers/Vmss-LB",
+            "type": "String"
+        },
+        "disks_Vmss_Prod_node_Vmss_Prod_node_2_OsDisk_1_00be77c992af4440bbe788b96652b689_externalid": {
+            "defaultValue": "/subscriptions/28e1e42a-4438-4c30-9a5f-7d7b488fd883/resourceGroups/1-99b44359-playground-sandbox/providers/Microsoft.Compute/disks/Vmss-Prod-node_Vmss-Prod-node_2_OsDisk_1_00be77c992af4440bbe788b96652b689",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2025-04-01",
+            "name": "[parameters('virtualMachineScaleSets_Vmss_Prod_node_name')]",
+            "location": "centralus",
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "singlePlacementGroup": false,
+                "orchestrationMode": "Uniform",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "scaleInPolicy": {
+                    "rules": [
+                        "Default"
+                    ],
+                    "forceDeletion": false
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "vmss-prod",
+                        "adminUsername": "localadmin",
+                        "windowsConfiguration": {
+                            "provisionVMAgent": true,
+                            "enableAutomaticUpdates": true
+                        },
+                        "secrets": [],
+                        "allowExtensionOperations": true,
+                        "requireGuestProvisionSignal": true
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "osType": "Windows",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                            },
+                            "diskSizeGB": 127
+                        },
+                        "imageReference": {
+                            "publisher": "MicrosoftWindowsServer",
+                            "offer": "WindowsServer",
+                            "sku": "2025-datacenter-g2",
+                            "version": "latest"
+                        },
+                        "diskControllerType": "SCSI"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "Vmss-vnet-nic01",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "disableTcpStateTracking": false,
+                                    "networkSecurityGroup": {
+                                        "id": "[parameters('networkSecurityGroups_Vmss_Prod_node_nsg_externalid')]"
+                                    },
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": false,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "Vmss-vnet-nic01-defaultIpConfiguration",
+                                            "properties": {
+                                                "publicIPAddressConfiguration": {
+                                                    "name": "publicIp-Vmss-vnet-nic01",
+                                                    "properties": {
+                                                        "idleTimeoutInMinutes": 15,
+                                                        "ipTags": [],
+                                                        "publicIPAddressVersion": "IPv4"
+                                                    }
+                                                },
+                                                "primary": true,
+                                                "subnet": {
+                                                    "id": "[concat(parameters('virtualNetworks_Vmss_vnet_externalid'), '/subnets/Subnet-vmss')]"
+                                                },
+                                                "privateIPAddressVersion": "IPv4",
+                                                "loadBalancerBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(parameters('loadBalancers_Vmss_LB_externalid'), '/backendAddressPools/bepool')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "diagnosticsProfile": {
+                        "bootDiagnostics": {
+                            "enabled": true
+                        }
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "HealthExtension",
+                                "properties": {
+                                    "autoUpgradeMinorVersion": false,
+                                    "enableAutomaticUpgrade": true,
+                                    "publisher": "Microsoft.ManagedServices",
+                                    "type": "ApplicationHealthWindows",
+                                    "typeHandlerVersion": "1.0",
+                                    "settings": {
+                                        "protocol": "http",
+                                        "port": 80,
+                                        "intervalInSeconds": 10,
+                                        "numberOfProbes": 10,
+                                        "requestPath": "/health.html"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "CustomScriptExtension",
+                                "properties": {
+                                    "autoUpgradeMinorVersion": true,
+                                    "publisher": "Microsoft.Compute",
+                                    "type": "CustomScriptExtension",
+                                    "typeHandlerVersion": "1.9",
+                                    "settings": {}
+                                }
+                            }
+                        ]
+                    },
+                    "securityProfile": {
+                        "uefiSettings": {
+                            "secureBootEnabled": true,
+                            "vTpmEnabled": true
+                        },
+                        "securityType": "TrustedLaunch"
+                    }
+                },
+                "overprovision": false,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "platformFaultDomainCount": 1,
+                "automaticRepairsPolicy": {
+                    "enabled": true,
+                    "gracePeriod": "PT30M",
+                    "repairAction": "Replace"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/extensions",
+            "apiVersion": "2025-04-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '/CustomScriptExtension')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "settings": {}
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/extensions",
+            "apiVersion": "2025-04-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '/HealthExtension')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'))]"
+            ],
+            "properties": {
+                "provisioningState": "Succeeded",
+                "autoUpgradeMinorVersion": false,
+                "enableAutomaticUpgrade": true,
+                "publisher": "Microsoft.ManagedServices",
+                "type": "ApplicationHealthWindows",
+                "typeHandlerVersion": "1.0",
+                "settings": {
+                    "protocol": "http",
+                    "port": 80,
+                    "intervalInSeconds": 10,
+                    "numberOfProbes": 10,
+                    "requestPath": "/health.html"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2025-04-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '/2')]",
+            "location": "centralus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard"
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "Vmss-vnet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "disableTcpStateTracking": false,
+                                "networkSecurityGroup": {
+                                    "id": "[parameters('networkSecurityGroups_Vmss_Prod_node_nsg_externalid')]"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "Vmss-vnet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "publicIPAddressConfiguration": {
+                                                "name": "publicIp-Vmss-vnet-nic01",
+                                                "properties": {
+                                                    "idleTimeoutInMinutes": 15,
+                                                    "ipTags": [],
+                                                    "publicIPAddressVersion": "IPv4"
+                                                }
+                                            },
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "[concat(parameters('virtualNetworks_Vmss_vnet_externalid'), '/subnets/Subnet-vmss')]"
+                                            },
+                                            "privateIPAddressVersion": "IPv4",
+                                            "loadBalancerBackendAddressPools": [
+                                                {
+                                                    "id": "[concat(parameters('loadBalancers_Vmss_LB_externalid'), '/backendAddressPools/bepool')]"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "resilientVMDeletionStatus": "Disabled",
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2025-datacenter-g2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "Vmss-Prod-node_Vmss-Prod-node_2_OsDisk_1_00be77c992af4440bbe788b96652b689",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS",
+                            "id": "[parameters('disks_Vmss_Prod_node_Vmss_Prod_node_2_OsDisk_1_00be77c992af4440bbe788b96652b689_externalid')]"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "vmss-prod000002",
+                    "adminUsername": "localadmin",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "securityProfile": {
+                    "uefiSettings": {
+                        "secureBootEnabled": true,
+                        "vTpmEnabled": true
+                    },
+                    "securityType": "TrustedLaunch"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '2'), '/networkInterfaces/Vmss-vnet-nic01')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines/extensions",
+            "apiVersion": "2025-04-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '/2/CustomScriptExtension')]",
+            "location": "centralus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '2')]",
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": true,
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "settings": {}
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines/extensions",
+            "apiVersion": "2025-04-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '/2/HealthExtension')]",
+            "location": "centralus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'), '2')]",
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Vmss_Prod_node_name'))]"
+            ],
+            "properties": {
+                "autoUpgradeMinorVersion": false,
+                "enableAutomaticUpgrade": true,
+                "publisher": "Microsoft.ManagedServices",
+                "type": "ApplicationHealthWindows",
+                "typeHandlerVersion": "1.0",
+                "settings": {
+                    "protocol": "http",
+                    "port": 80,
+                    "intervalInSeconds": 10,
+                    "numberOfProbes": 10,
+                    "requestPath": "/health.html"
+                }
+            }
+        }
+    ]
+}
